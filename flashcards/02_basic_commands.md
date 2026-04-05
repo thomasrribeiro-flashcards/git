@@ -1,91 +1,95 @@
 +++
 order = 2
-tags = ["git", "commands", "basics"]
+tags = ["git", "basics", "commands", "workflow"]
 +++
 
-Q: What does `git init` do and what file/folder does it create?
-A: Initialises a new Git repository in the current directory by creating a `.git/` folder containing the object store, refs, config, and HEAD. On new repos, pass `--initial-branch=main` to set the default branch name.
+# Basic Git Commands
 
----
+## 2.1 Starting a Repository
 
-Q: What is the difference between `git clone <url>` and `git init` + `git remote add` + `git fetch`?
-A: `git clone` does all three in one step: initialises a local repo, adds `origin` pointing to the URL, fetches all refs and objects, checks out the default branch. The manual sequence gives more control over remote naming and branch selection.
+Q: Why would you use `git init` instead of `git clone`?
+A: When you are starting a brand-new project from scratch with no existing remote. `git init` creates the `.git/` directory in the current folder, giving you an empty repository to begin committing to.
 
----
+Q: What does `git clone <url>` do?
+A: It creates a new directory, copies the entire repository (all objects and refs) from the remote URL into it, sets up a remote named `origin` pointing to that URL, and checks out the default branch.
+
+C: `git init` creates an empty local repository; `git clone` copies an [existing] remote repository including its full history.
+
+## 2.2 Why a Staging Area?
+
+Q: Why does Git have a staging area between the working tree and a commit?
+A: It lets you craft a precise, atomic commit. You can work on many things at once in your working tree, then selectively stage only the changes that belong together — leaving unrelated edits unstaged for a later commit.
+
+Q: What is the practical benefit of `git add -p` (patch mode)?
+A: It splits a file's changes into individual hunks and asks you whether to stage each one. This lets you commit part of a file's changes while leaving other parts unstaged.
+
+## 2.3 status / add / commit
 
 Q: What does `git status` show?
-A: The current branch name, whether it is ahead/behind its upstream, files with staged changes (index vs HEAD), files with unstaged changes (working tree vs index), and untracked files.
+A: Which tracked files have been modified (but not staged), which changes have been staged for the next commit, and which files are untracked.
 
----
+Q: What does `git add <path>` do?
+A: Copies the current content of the file (or directory) into the index (staging area), marking it for inclusion in the next commit.
 
-Q: How do you stage all changes (modified + deleted) but not untracked files?
-A: `git add -u` (or `--update`). To also stage untracked files use `git add .` or `git add -A`.
+Q: What does `git add .` do?
+A: Stages all changes (modifications and new files) under the current directory. Use with care — it can accidentally include files you didn't intend to stage.
 
----
+Q: What does `git commit` do?
+A: Creates a new commit object containing a snapshot of the staging area, a reference to the parent commit(s), author/committer metadata, timestamp, and the message you provide. The current branch ref advances to point at the new commit.
 
-Q: What is the difference between `git add .` and `git add -A`?
-A: In modern Git (≥2.x) from the repo root both are equivalent — they stage all changes including deletions and untracked files. In older Git, `git add .` did not stage deletions in the current directory's subtree.
+Q: What does `git commit -m "<message>"` do differently from `git commit`?
+A: Provides the commit message inline, skipping the editor. Convenient for short messages; use the editor (no `-m`) for multi-line messages with a subject and body.
 
----
+C: The three-step cycle for most changes: edit files in working tree → `git add` to stage → `git commit` to [record in history].
 
-C: `git add -p` (or `--patch`) enters interactive staging, letting you review and selectively stage [individual hunks] within a file rather than the whole file.
+## 2.4 Writing a Good Commit Message
 
----
+Q: What is the subject line rule for Git commit messages?
+A: Keep it under 50 characters, use the imperative mood ("Fix bug", not "Fixed bug"), and do not end with a period. This matches the format `git log --oneline` and many tools expect.
 
-Q: What does `git commit --amend` do?
-A: Replaces the most recent commit with a new commit that incorporates any currently staged changes and (optionally) a new message. It rewrites history — never amend a commit that has been pushed to a shared branch.
+Q: Why use the imperative mood for commit subject lines?
+A: Git itself uses imperative mood in auto-generated messages ("Merge branch…", "Revert…"). A commit message describes what applying the commit *does*, not what you did — so "Add feature" reads naturally.
 
----
+Q: What should go in the commit body (lines after the subject)?
+A: Explain *why* the change was made and any context that isn't obvious from the diff. Leave a blank line between the subject and the body. Wrap lines at 72 characters.
 
-Q: What flag to `git commit` skips the staging area and commits all tracked modified files directly?
-A: `git commit -a` (or `--all`). It does not stage untracked files.
+C: A good commit message: [subject] under 50 chars in imperative mood, blank line, then optional [body] explaining why.
 
----
+## 2.5 Inspecting Commits
+
+Q: What does `git show <ref>` display?
+A: The commit metadata (author, date, message) and the diff introduced by that commit — what was added and removed relative to the parent.
+
+Q: What does `git log` show by default?
+A: Each commit on the current branch in reverse chronological order, with full SHA-1, author, date, and message.
+
+Q: What does `git log --oneline` display?
+A: Each commit as a single line: abbreviated SHA-1 and subject. Useful for a compact overview of recent history.
 
 Q: What does `git log --oneline --graph --all` show?
-A: A compact ASCII graph of all branches' commit history: each commit as a one-line SHA + message, with branches and merges drawn as lines.
+A: An ASCII graph of all branches and their merge points, with each commit as one line. Useful for visualising branching history.
 
----
+Q: What does `git log -p` include in its output?
+A: The full patch (diff) for each commit, interleaved with the commit metadata. Equivalent to running `git show` on every commit in the log.
 
-Q: How do you show the diff of a specific commit?
-A: `git show <commit>` displays the commit metadata and the unified diff introduced by that commit.
+## 2.6 Atomic Commit — P:/S:
 
----
+P: You have been working on a feature and a bug fix simultaneously. Both are mixed through several files in your working tree. How do you commit them as two separate atomic commits?
 
-Q: What does `git diff` (no arguments) show?
-A: Changes in the working tree that have not been staged (working tree vs index). `git diff --staged` (or `--cached`) shows staged changes (index vs HEAD).
+S:
+**IDENTIFY**: Separate two interleaved sets of changes into distinct commits.
 
----
+**PLAN**:
+- Use `git add -p` (patch mode) to stage only the hunks belonging to the first logical change.
+- Commit that set, then stage and commit the remaining hunks.
 
-Q: How do you see which commit introduced a particular line in a file?
-A: `git blame <file>` annotates each line with the commit SHA, author, and date that last modified it. Use `-L <start>,<end>` to narrow to a range of lines.
+**EXECUTE**:
+1. `git add -p` — Git presents each hunk; press `y` to stage, `n` to skip, `s` to split smaller.
+2. `git status` — verify only the intended changes are staged.
+3. `git commit -m "fix: correct off-by-one in pagination"`.
+4. `git add -p` again — stage the feature hunks.
+5. `git commit -m "feat: add user avatar upload"`.
 
----
-
-Q: What does `git shortlog -sn` produce?
-A: A summary of commits grouped by author, sorted by count (`-s` = suppress commit list, `-n` = sort by count). Useful for seeing who contributed the most commits.
-
----
-
-Q: How do you create an alias for a long git command?
-A: `git config --global alias.<name> '<command>'`. Example: `git config --global alias.lg "log --oneline --graph --all"` then use `git lg`.
-
----
-
-Q: What does `git rev-parse HEAD` return?
-A: The full 40-character SHA-1 hash of the current HEAD commit. Useful in scripts when you need the exact commit hash.
-
----
-
-Q: How do you view the full content of any Git object by its SHA?
-A: `git cat-file -p <sha>` pretty-prints the object. `-t` shows the type (blob/tree/commit/tag). Useful for understanding Git internals.
-
----
-
-Q: What does `git ls-files` show?
-A: Files tracked by the index (staging area). With `--others --exclude-standard` it shows untracked files (equivalent to the "untracked" section of `git status`).
-
----
-
-Q: What is `git archive` used for?
-A: Creates a tar or zip archive of a tree at a given ref without the `.git/` directory — useful for producing release tarballs: `git archive --format=tar.gz HEAD > release.tar.gz`.
+**EVALUATE**:
+- `git log --oneline -2` — confirm two separate commits with clear messages.
+- `git show HEAD~1` and `git show HEAD` — verify each diff contains only its intended changes.

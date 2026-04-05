@@ -1,76 +1,78 @@
 +++
 order = 7
-tags = ["git", "log", "diff", "blame", "history"]
+tags = ["git", "log", "diff", "blame", "bisect", "history"]
 +++
 
-Q: How do you show commits that affected a specific file?
-A: `git log -- <file>`. Add `--follow` to track renames: `git log --follow -- <file>`.
+# History and Diffing
 
----
+## 7.1 git log — Viewing History
 
-Q: How do you search commit messages for a keyword?
-A: `git log --grep="<pattern>"` — case-insensitive by adding `-i`. Use `--all-match` if you pass multiple `--grep` patterns and want commits that match all of them.
+Q: What does `git log --oneline` output?
+A: One line per commit: abbreviated SHA-1 and subject. Useful for a compact overview of recent history.
 
----
+Q: What does `git log --oneline --graph --all` add?
+A: `--graph` draws an ASCII branch/merge diagram; `--all` includes commits reachable from any ref (all branches and tags), not just the current branch.
 
-Q: How do you find all commits where a specific string was added or removed from file content?
-A: `git log -S"<string>"` (pickaxe search). `-G"<regex>"` searches for a regex in the diff content. These are invaluable for tracing when a function, variable, or value was introduced or removed.
+Q: How do you limit `git log` to commits affecting a specific file?
+A: `git log -- <file>`. The `--` separates the path from any ref arguments, preventing ambiguity.
 
----
+Q: How do you search commit messages in `git log`?
+A: `git log --grep="<pattern>"` shows only commits whose messages match the pattern.
 
-Q: What does `git log --author="<name>" --since="2 weeks ago"` do?
-A: Filters the log to commits by that author in the last two weeks. `--since` / `--after` and `--until` / `--before` accept natural language or ISO dates.
+Q: What does `git log -p` add to the output?
+A: The full patch (diff) introduced by each commit, interleaved with commit metadata.
 
----
+Q: What does `git log --first-parent` filter?
+A: On a branch with merge commits, it shows only commits along the first-parent chain (the mainline), skipping commits brought in by merges. Useful for reading the high-level story of `main`.
 
-Q: What is the `--stat` flag on `git log`?
-A: Shows a diffstat (files changed, insertions, deletions) for each commit without showing the full diff. `--shortstat` shows only the summary line.
+## 7.2 git diff — Comparing States
 
----
+Q: What does `git diff` (no arguments) show?
+A: The difference between the working tree and the index (staging area). In other words: changes you have made but not yet staged.
 
-Q: How do you show only the files changed in the last commit, without diff content?
-A: `git show --name-only HEAD` or `git diff-tree --no-commit-id -r --name-only HEAD`.
+Q: What does `git diff --staged` show?
+A: The difference between the index and the last commit (HEAD). In other words: changes that are staged and will go into the next commit.
 
----
+Q: What does `git diff HEAD` show?
+A: The difference between the working tree and the last commit — all unstaged and staged changes combined.
 
-C: `git log --pretty=format:"%h %an %s"` prints a [custom one-line] format per commit: abbreviated hash, author name, and subject. Common tokens: `%H` (full hash), `%ae` (author email), `%ad` (author date), `%s` (subject), `%b` (body).
+Q: How do you diff two commits?
+A: `git diff <sha1> <sha2>` — shows what changed between those two snapshots. `git diff main..feature` shows what `feature` has that `main` doesn't.
 
----
+C: `git diff` = working tree vs [index]. `git diff --staged` = index vs [HEAD]. `git diff HEAD` = working tree vs [HEAD].
 
-Q: What does `git diff HEAD~3..HEAD -- src/` show?
-A: The combined diff of all changes to the `src/` directory across the last three commits.
+## 7.3 git blame and Pickaxe
 
----
+Q: Why is `git blame` useful?
+A: It annotates every line of a file with the commit and author that last changed it, letting you trace when and why a specific line was introduced or last modified.
 
-Q: How do you compare two branches' states at a specific file?
-A: `git diff <branch1>..<branch2> -- <file>`. Or `git diff <branch1>:<file> <branch2>:<file>` to see just those two versions.
+Q: What does `git log -S "<string>"` do (pickaxe)?
+A: Searches history for commits that changed the number of occurrences of the given string — useful for finding where a function was introduced or deleted. `-G "<regex>"` searches for a pattern instead.
 
----
+## 7.4 git bisect — Finding a Regression
 
-Q: How do you view a file as it existed in a specific commit?
-A: `git show <sha>:<path/to/file>` prints the file contents at that commit. Example: `git show HEAD~2:src/main.js`.
+Q: What is the purpose of `git bisect`?
+A: It uses binary search across the commit history to find the first commit that introduced a bug. Instead of checking every commit, it narrows down the culprit in O(log n) steps.
 
----
+P: A test that passed in a release two weeks ago now fails. There are 500 commits in between. How do you efficiently find the commit that broke it?
 
-Q: What does `git blame -L 10,20 <file>` do?
-A: Shows blame (commit, author, date) only for lines 10–20 of the file. `-w` ignores whitespace-only changes. `-C` detects lines moved/copied from other files in the same commit.
+S:
+**IDENTIFY**: A regression exists somewhere in a range of 500 commits; need the first bad commit.
 
----
+**PLAN**: Use `git bisect` to binary-search the range, running a test at each midpoint to classify it as good or bad.
 
-Q: What is `git log --merges` vs `--no-merges`?
-A: `--merges` shows only merge commits (those with two or more parents). `--no-merges` excludes them — useful for reading a clean feature history without noise.
+**EXECUTE**:
+1. `git bisect start` — begin the bisect session.
+2. `git bisect bad` — mark the current commit (HEAD) as bad.
+3. `git bisect good <release-tag>` — mark the known-good commit.
+4. Git checks out the midpoint. Run your test.
+   - If test passes: `git bisect good`
+   - If test fails: `git bisect bad`
+5. Repeat until Git prints: `<sha> is the first bad commit`.
+6. `git bisect reset` — return HEAD to the original position.
 
----
+**Optional automation**: `git bisect run <test-script>` — the script exits 0 for good, non-zero for bad, 125 to skip (e.g., if the commit won't build).
 
-Q: How do you visualise the full branch history across all refs in the terminal?
-A: `git log --oneline --graph --all --decorate`. Many teams alias this to `git lg`. The `--decorate` flag (default in modern Git) shows branch and tag labels next to commits.
-
----
-
-Q: What does `git diff --word-diff` do?
-A: Shows diffs at the word level rather than line level, highlighting the specific words added/removed within each changed line. Useful for prose or config file diffs.
-
----
-
-Q: How do you count how many lines were added and deleted across all commits by a specific author?
-A: `git log --author="<name>" --numstat --no-merges` and sum columns, or: `git log --author="<name>" --pretty=tformat: --numstat | awk '{ add+=$1; del+=$2 } END { print add, del }'`.
+**EVALUATE**:
+- Inspect the identified commit with `git show <sha>` — confirm the change makes sense.
+- Write a regression test for the introduced bug before fixing it.

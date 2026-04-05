@@ -3,59 +3,44 @@ order = 6
 tags = ["git", "stash"]
 +++
 
+# Stashing
+
+## 6.1 What a Stash Is
+
+Q: What is a stash in Git?
+A: A stash is a temporary commit-like object stored in a private stack at `refs/stash`. It records the current state of the index and working tree so you can set them aside and return to a clean state, then reapply later.
+
+Q: Why would you use `git stash` instead of committing?
+A: When you need to switch context immediately (e.g., urgent hotfix on another branch) but your current changes are not ready to commit. Stashing shelves them without polluting history with a work-in-progress commit.
+
+C: `git stash` saves uncommitted changes to a [private stack], cleaning the working tree so you can switch branches.
+
+## 6.2 push / list / pop / apply / drop
+
 Q: What does `git stash` (or `git stash push`) do?
-A: Saves the current dirty state of the working tree and index onto a stack, then restores the working tree to a clean state (matching HEAD). Useful when you need to switch context quickly without committing.
+A: Saves tracked modifications and staged changes to the stash stack, then resets the working tree and index to match HEAD. Untracked files are not stashed by default.
 
----
+Q: How do you give a stash a descriptive name?
+A: `git stash push -m "WIP: refactor auth module"`. The message appears in `git stash list`.
 
-Q: How do you apply the most recent stash and remove it from the stack?
-A: `git stash pop`. It applies the stash and removes it if there are no conflicts. If conflicts occur, the stash is not removed — resolve conflicts, stage them, then `git stash drop` manually.
+Q: What does `git stash list` show?
+A: All stashes in the stack: `stash@{0}` (most recent), `stash@{1}`, etc., with their messages.
 
----
+Q: What is the difference between `git stash pop` and `git stash apply`?
+A: Both reapply a stash's changes to the working tree. `pop` also removes the entry from the stash stack; `apply` leaves the stash entry in place.
 
-Q: What is the difference between `git stash apply` and `git stash pop`?
-A: Both apply the stash to the working tree. `apply` keeps the stash entry on the stack; `pop` removes it after successful application.
+Q: How do you apply a specific stash (not the most recent)?
+A: `git stash apply stash@{2}` applies the third-most-recent stash. `git stash pop stash@{2}` applies it and removes it from the stack.
 
----
+Q: What does `git stash drop stash@{0}` do?
+A: Removes the specified stash entry from the stack without applying it. `git stash clear` removes all stash entries.
 
-Q: How do you apply a specific stash entry (not the most recent)?
-A: `git stash apply stash@{n}` or `git stash pop stash@{n}`, where `n` is the index shown by `git stash list`.
+C: `git stash pop` = apply + [drop]. `git stash apply` applies but [keeps] the stash entry.
 
----
+## 6.3 Partial Stashing
 
-C: `git stash push -m "<message>"` saves a stash with a [descriptive label] so you can identify it later in `git stash list`.
+Q: How do you stash only some changes (not all modified files)?
+A: `git stash push -p` (patch mode) lets you interactively choose which hunks to stash, similar to `git add -p`. The un-chosen hunks remain in the working tree.
 
----
-
-Q: How do you stash only specific files?
-A: `git stash push -- <file1> <file2>` stashes only those files. Unmentioned tracked changes remain in the working tree (unstaged).
-
----
-
-Q: What flag includes untracked files in a stash?
-A: `git stash push -u` (or `--include-untracked`). To also include gitignored files, use `-a` (or `--all`).
-
----
-
-Q: How do you create a new branch from a stash?
-A: `git stash branch <branch> [stash@{n}]`. Creates the branch at the commit where the stash was made, checks it out, and applies the stash — then drops the stash if application succeeds. Avoids conflicts when the stash's base has diverged.
-
----
-
-Q: How do you delete a specific stash entry?
-A: `git stash drop stash@{n}`. To clear all stash entries: `git stash clear`.
-
----
-
-Q: How do you see the diff of what is saved in a stash?
-A: `git stash show -p stash@{n}` shows the diff. `git stash show stash@{n}` shows a summary (stat-style).
-
----
-
-Q: Does `git stash` save staged vs unstaged changes separately?
-A: Yes. The stash creates two (or three) commits: one for the index (staged changes) and one for the working tree (unstaged). `git stash show` shows the combined diff; `--index` flag on `apply`/`pop` also restores the staged/unstaged distinction.
-
----
-
-Q: How do you stash only staged changes?
-A: `git stash push --staged` (Git ≥2.35). This stashes only what is in the index, leaving unstaged changes in the working tree.
+Q: How do you include untracked files in a stash?
+A: `git stash push -u` (or `--include-untracked`). `-a` (or `--all`) also stashes files ignored by `.gitignore`.
