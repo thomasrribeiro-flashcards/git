@@ -96,7 +96,7 @@ C: A commit contains: a pointer to a root [tree], zero or more [parent] SHAs, au
 ## 1.8 Refs and HEAD
 
 Q: What is a Git ref?
-A: A ref is a named pointer to a commit SHA, stored as a plain text file under `.git/refs/`. Branches, tags, and remote-tracking branches are all refs.
+A: A ref is a named pointer to a commit SHA, stored as a plain text file under `.git/refs/`. Branches and tags are refs (remote-tracking branches are another kind, covered later).
 
 Q: What is a branch in Git?
 A: A branch is just a ref — a file containing a single commit SHA. When you make a new commit on a branch, Git updates that file to point to the new commit. This makes creating and switching branches extremely cheap.

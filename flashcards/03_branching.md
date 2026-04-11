@@ -76,7 +76,7 @@ S:
 ## 3.6 Rebase
 
 Q: Why would you rebase instead of merging?
-A: Rebase replays your branch's commits on top of the target, producing a linear history with no merge commit. The resulting log is easier to read and `git bisect` has a cleaner surface to search. Trade-off: it rewrites SHA-1s, so rebase is unsafe on shared (published) branches.
+A: Rebase replays your branch's commits on top of the target, producing a linear history with no merge commit. The resulting log is easier to read and `git bisect` has a cleaner surface to search because every commit is a simple parent-child step with no branchy topology.
 
 Q: What does `git rebase main` do when run on a feature branch?
 A: Git finds the common ancestor of `feature` and `main`, temporarily removes `feature`'s commits, fast-forwards `feature` to the tip of `main`, then replays the removed commits one by one on top. Each replayed commit gets a new SHA-1.
