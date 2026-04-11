@@ -1,5 +1,6 @@
 +++
 order = 1
+subject = "Computer Science"
 tags = ["git", "fundamentals", "vcs"]
 +++
 
