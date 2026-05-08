@@ -9,7 +9,7 @@ tags = ["git", "fundamentals", "vcs"]
 ## 1.1 What Git Is
 
 Q: Why was Git created?
-A: Linus Torvalds created Git in 2005 after the Linux kernel lost access to the BitKeeper VCS. The team needed a free, fast, distributed version control system that could handle the scale of the kernel project.
+A: Linus Torvalds built it in 2005 after the Linux kernel lost BitKeeper access — they needed a free, fast, distributed VCS at kernel scale.
 
 Q: What problem does version control solve?
 A: It records the complete history of changes to a project, letting you retrieve any earlier state, understand who changed what and why, and collaborate with others without overwriting each other's work.

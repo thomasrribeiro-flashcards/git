@@ -89,7 +89,18 @@ C: The golden rule of rebase: [never rebase commits that exist outside your loca
 Q: What is interactive rebase (`git rebase -i`)?
 A: It opens an editor listing each commit in the range. You can reorder, `squash` (combine with previous), `fixup` (squash silently), `reword` (change message), `edit` (pause to amend), or `drop` (delete) individual commits.
 
-## 3.7 Rebase a Feature Branch — P:/S:
+## 3.7 Pattern-Recognition Triggers
+
+Q: Your feature branch is behind `main`. You want to update it. Should you merge `main` into it, or rebase onto `main`?
+A: Rebase if the branch is local-only (linear history, easier review). Merge if others are working on the same branch (rebasing rewrites history they share).
+
+Q: You and a colleague both pushed to `main` and your local `main` has diverged. You run `git pull` and get a merge commit you don't want. What flag fixes this?
+A: `git pull --rebase` — replays your local commits on top of the remote, no merge commit.
+
+Q: You committed to the wrong branch. What's the fix?
+A: `git log -1 --format=%H` to grab the SHA, `git switch <correct-branch>`, `git cherry-pick <sha>`, then `git switch <wrong-branch> && git reset --hard HEAD~1` to remove from the wrong branch.
+
+## 3.8 Rebase a Feature Branch — P:/S:
 
 P: Your feature branch forked from `main` three days ago. `main` has since received five new commits. How do you update your feature branch to include those changes, keeping a linear history?
 
@@ -112,7 +123,7 @@ S:
 - `git log --oneline --graph` — feature commits should appear linearly after `main`'s latest.
 - `git diff origin/main..HEAD` — only your feature changes; no unintended diffs.
 
-## 3.8 Lightweight Tags
+## 3.9 Lightweight Tags
 
 Q: What is a lightweight tag?
 A: A ref that points directly to a specific commit SHA — essentially an alias for that commit. It is just a file under `.git/refs/tags/` with no additional object.

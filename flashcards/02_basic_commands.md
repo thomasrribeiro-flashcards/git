@@ -72,7 +72,18 @@ A: An ASCII graph of all branches and their merge points, with each commit as on
 Q: What does `git log -p` include in its output?
 A: The full patch (diff) for each commit, interleaved with the commit metadata. Equivalent to running `git show` on every commit in the log.
 
-## 2.6 Atomic Commit — P:/S:
+## 2.6 Pattern-Recognition Triggers
+
+Q: You have many unrelated edits across several files and need to commit them as separate logical commits. What command fires first?
+A: `git add -p` (patch mode) — interactively stage only the hunks for one logical change at a time.
+
+Q: You staged a file by mistake. Which command unstages it (without losing the working-tree edit)?
+A: `git restore --staged <file>` (or `git reset HEAD <file>` on older Git).
+
+Q: You want to see exactly what's about to be committed (not just file names). What command?
+A: `git diff --staged` — shows the diff between the index and HEAD.
+
+## 2.7 Atomic Commit — P:/S:
 
 P: You have been working on a feature and a bug fix simultaneously. Both are mixed through several files in your working tree. How do you commit them as two separate atomic commits?
 

@@ -8,7 +8,10 @@ tags = ["git", "workflows", "best-practices", "collaboration", "conventional-com
 ## 9.1 Why Have a Branching Model?
 
 Q: Why do teams adopt a branching model rather than committing directly to `main`?
-A: To coordinate parallel development, isolate incomplete work from production-ready code, facilitate code review, and provide a clear path from development to release. Without a model, the state of `main` is unpredictable.
+A: To coordinate parallel work, isolate incomplete code from production, and provide a predictable release path.
+
+Q: How does a branching model help with code review specifically?
+A: Each branch represents a reviewable unit; a PR/MR against `main` makes diff scope, scope ownership, and CI pass/fail explicit before code reaches production.
 
 ## 9.2 Git Flow
 

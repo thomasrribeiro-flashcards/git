@@ -61,7 +61,27 @@ C: `git reset --soft` = move ref only. `--mixed` = move ref + reset [index]. `--
 Q: Before reading further: predict what `git reset --hard HEAD~1` does to any uncommitted changes you have.
 A: They are destroyed. `--hard` resets the working tree to match `HEAD~1`, so any uncommitted edits are overwritten and gone.
 
-## 5.6 Reflog — Your Safety Net
+## 5.6 Pattern-Recognition: Which Undo?
+
+Q: You modified a file but want to discard the edit (it's not staged). Which command?
+A: `git restore <file>` — discards working-tree changes only.
+
+Q: You staged a file by mistake. Which command unstages without discarding the edit?
+A: `git restore --staged <file>`.
+
+Q: You committed locally but haven't pushed; you want to fix the message. Which command?
+A: `git commit --amend` — replaces the last commit. Safe because it's local-only.
+
+Q: You pushed a bad commit and need to undo it without rewriting public history. Which command?
+A: `git revert <sha>` — creates an inverse commit. Other people's history stays intact.
+
+Q: You want to undo a local commit but keep its changes staged for re-committing. Which reset mode?
+A: `git reset --soft HEAD~1` — moves branch back, keeps index and working tree.
+
+Q: You ran a destructive command and lost commits. What's your safety net?
+A: `git reflog` — find the lost SHA, then `git reset --hard <sha>`. Default 90-day grace before garbage collection.
+
+## 5.7 Reflog — Your Safety Net
 
 Q: Why does the reflog exist?
 A: Git keeps a local log of every time HEAD or a branch tip moved. The reflog lets you find commits that appear "lost" after a reset, rebase, or accidental branch deletion — as long as you act before garbage collection (default 90-day grace period).
